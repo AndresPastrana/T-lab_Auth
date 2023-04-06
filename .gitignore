@@ -1,2 +1,12 @@
 node_modules/
+
+# Testing 
+# test/
+coverage/
+
+# Environmnets
 .env
+
+
+# Logs
+yarn-error.log
