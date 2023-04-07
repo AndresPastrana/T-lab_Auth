@@ -83,10 +83,13 @@ const refresh = async (req = request, resp = response) => {
   if (!cred) {
   }
   // Generate new access_token
-  const access_token = await generateToken("access", {
-    uid: cred._id,
-    isConfirmed,
-  });
+  const access_token = await generateToken(
+    {
+      uid: cred._id,
+      isConfirmed: cred.isConfirmed,
+    },
+    "access"
+  );
 
   return resp.json({ access_token, refresh_token: cred.refreshToken });
 };

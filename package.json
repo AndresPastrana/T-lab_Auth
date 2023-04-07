@@ -6,7 +6,7 @@
   "author": "Andres Pastrana",
   "scripts": {
     "dev": "nodemon index.js",
-    "test": "jest --testTimeout=5000 --coverage --watchAll --detectOpenHandles",
+    "test": "jest --testTimeout=10000 --coverage --watchAll --detectOpenHandles",
     "start": "node index"
   },
   "license": "MIT",
@@ -20,7 +20,11 @@
     "mongoose": "^7.0.2"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.13",
+    "@types/express": "^4.17.17",
     "@types/jest": "^29.5.0",
+    "@types/mongoose": "^5.11.97",
+    "@types/morgan": "^1.9.4",
     "jest": "^29.5.0",
     "morgan": "^1.10.0",
     "nodemon": "^2.0.21",

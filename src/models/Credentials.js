@@ -26,7 +26,7 @@ const CredentialsSchema = new Schema({
     type: Boolean,
     default: true,
   },
-  isConfrimed: {
+  isConfirmed: {
     type: Boolean,
     default: false,
   },

@@ -34,8 +34,8 @@ router.post(
   login
 );
 // TODO: We need to check that en la request viene un toquen de refresh valido,
-router.get("/refresh", [], refresh);
+router.get("/refresh", [isValidToken("refresh")], refresh);
 
-router.delete("/logout", [isValidToken], logout);
+router.delete("/logout", [isValidToken("refresh")], logout);
 
 module.exports = router;
