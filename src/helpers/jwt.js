@@ -5,9 +5,9 @@ const validsTypes = {
   refresh_token: "refresh",
 };
 
-const generateToken = (payload, type = "") => {
+const generateToken = (payload, type = "access") => {
   if (!Object.values(validsTypes).includes(type)) {
-    throw new Error("type argument is rquired");
+    throw new Error("invalid token type");
   }
 
   return new Promise((resolve, reject) => {

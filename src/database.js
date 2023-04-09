@@ -15,6 +15,10 @@ const connection = (env) => {
     mongoose.connection.once("open", () => {
       console.log(`DB :  Database online   (${env})`);
     });
+
+    mongoose.connection.once("disconnected", () => {
+      console.log(`\n DB :  Database offline   (${env})`);
+    });
   }
 
   // mongoose.connection.once("disconnected", () => {

@@ -37,7 +37,7 @@ const CredentialsModel = model("Credential", CredentialsSchema);
 CredentialsSchema.methods.toJSON = function () {
   // We should never return the password and the email of the user
   const { __v, _id, password, email } = this.toObject();
-  return { uid: _id };
+  return { uid: _id.toString() };
 };
 
 module.exports = CredentialsModel;

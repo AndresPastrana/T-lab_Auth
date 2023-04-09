@@ -7,6 +7,6 @@ coverage/
 # Environmnets
 .env
 
-
+.vscode/
 # Logs
 yarn-error.log

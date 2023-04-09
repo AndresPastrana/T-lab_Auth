@@ -4,11 +4,9 @@ const bcrypt = require("bcrypt");
 const CredentialsModel = require("../models/Credentials");
 const { generateToken } = require("../helpers/jwt");
 
-// Autentica el usuario en el sitema , genera u token de acceso y un token de refresh
 const login = async (req = request, resp = response) => {
   try {
     const { email = "", password = "" } = req.body;
-
     const query = { email, active: true };
 
     // Verificamos que exista un usario con estas credentiales
@@ -18,24 +16,20 @@ const login = async (req = request, resp = response) => {
     if (!cred) {
       return resp.status(400).json({ msg: "Wrong email or password " });
     }
-
     const isRightPassword = await bcrypt.compare(password, cred.password);
 
     // We check if the password is correct
     if (!isRightPassword) {
       return resp.status(400).json({ msg: "Wrong email or password " });
     }
-
     // Access token
-    const payload = { uid: cred._id };
-    const access_token = await generateToken(payload, "access");
-
+    const payload = { uid: cred._id.toString() };
+    const access_token = await generateToken(payload);
     // Refresh token
     if (!cred.refreshToken) {
       cred.refreshToken = await generateToken(payload, "refresh");
       await cred.save();
     }
-
     return resp.json({
       access_token,
       refresh_token: cred.refreshToken,
@@ -49,49 +43,50 @@ const login = async (req = request, resp = response) => {
 };
 
 const register = async (req = request, resp = response) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const cred = new CredentialsModel({ email, password: hashedPassword });
+    const payload = { uid: cred._id.toString() };
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+    const [access_token, refresh_token] = await Promise.all([
+      await generateToken(payload),
+      await generateToken(payload, "refresh"),
+    ]);
 
-  const cred = new CredentialsModel({ email, password: hashedPassword });
+    cred.refreshToken = refresh_token;
 
-  const payload = { uid: cred._id };
+    const user = await cred.save();
 
-  const [access_token, refresh_token] = await Promise.all([
-    await generateToken(payload, "access"),
-    await generateToken(payload, "refresh"),
-  ]);
-
-  cred.refreshToken = refresh_token;
-
-  const user = await cred.save();
-
-  return resp.json({
-    access_token,
-    refresh_token: user.refreshToken,
-  });
+    return resp.json({
+      access_token,
+      refresh_token: user.refreshToken,
+    });
+  } catch (error) {
+    console.log(error);
+    return resp.status(500).json({ error });
+  }
 };
 
 const refresh = async (req = request, resp = response) => {
-  // TODO:
-  // Extract the uid from the request
-  const { uid } = req;
-  const query = { active: true, _id: uid };
-  // Find for the user , with that _id
-  const cred = await CredentialsModel.findOne(query);
+  try {
+    const { uid } = req;
+    const query = { active: true, _id: uid };
+    // Find for the user , with that _id
+    const cred = await CredentialsModel.findOne(query);
 
-  if (!cred) {
+    // The user was deleted
+    if (!cred) {
+      return resp.status(404).json({ msg: "Recurso no encontrado" });
+    }
+    // Generate new access_token
+    const payload = { uid: cred._id.toString() };
+    const access_token = await generateToken(payload);
+    return resp.json({ access_token, refresh_token: cred.refreshToken });
+  } catch (error) {
+    console.log(error);
+    return resp.json({ error });
   }
-  // Generate new access_token
-  const access_token = await generateToken(
-    {
-      uid: cred._id,
-      isConfirmed: cred.isConfirmed,
-    },
-    "access"
-  );
-
-  return resp.json({ access_token, refresh_token: cred.refreshToken });
 };
 
 const logout = async (req = request, resp = response) => {
@@ -104,7 +99,6 @@ const logout = async (req = request, resp = response) => {
     }
     cred.refreshToken = null;
     await cred.save();
-
     return resp.status(201).json({ ok: true });
   } catch (error) {
     console.log(error);
