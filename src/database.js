@@ -8,10 +8,7 @@ const connection = (env) => {
 
   if (env === "test") {
     CDN = process.env.CDN_MONGODB_TEST;
-  }
-
-  // Define here conection events handlers
-  if (env !== "test") {
+  } else {
     mongoose.connection.once("open", () => {
       console.log(`DB :  Database online   (${env})`);
     });
@@ -20,7 +17,6 @@ const connection = (env) => {
       console.log(`\n DB :  Database offline   (${env})`);
     });
   }
-
   // mongoose.connection.once("disconnected", () => {
   //   console.log("DB :  Mongoose conection disconected .");
   // });

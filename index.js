@@ -9,16 +9,10 @@ const app = express();
 const moongose = require("./src/database").connection(app.get("env"));
 
 // Middlewares
-
-// Access controll
 app.use(cors({ origin: "*", methods: ["POST", "GET"] }));
-// Static files
 app.use(express.static("public"));
-// request.body as an JavaScript object
 app.use(express.json());
-// Routes
 app.use("/auth", require("./src/routes/credentials"));
-// Logger
 app.use(morgan("dev"));
 
 // Server
