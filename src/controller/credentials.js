@@ -23,7 +23,7 @@ const login = async (req = request, resp = response) => {
       return resp.status(400).json({ msg: "Wrong email or password " });
     }
     // Access token
-    const payload = { uid: cred._id.toString() };
+    const payload = { uid: cred._id.toString(),email,role: cred.role };
     const access_token = await generateToken(payload);
     // Refresh token
     if (!cred.refreshToken) {
@@ -44,10 +44,12 @@ const login = async (req = request, resp = response) => {
 
 const register = async (req = request, resp = response) => {
   try {
-    const { email, password } = req.body;
+    const { email, password,role } = req.body;
+    console.log({email,password,role});
+    
     const hashedPassword = await bcrypt.hash(password, 10);
-    const cred = new CredentialsModel({ email, password: hashedPassword });
-    const payload = { uid: cred._id.toString() };
+    const cred = new CredentialsModel({ email, password: hashedPassword,role });
+    const payload = { uid: cred._id.toString(),role,email };
 
     const [access_token, refresh_token] = await Promise.all([
       await generateToken(payload),

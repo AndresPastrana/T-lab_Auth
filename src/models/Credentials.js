@@ -30,6 +30,11 @@ const CredentialsSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  role:{
+    type: String,
+    required: true,
+    enum : ["admin","student",'profesor']
+  }
 });
 
 const CredentialsModel = model("Credential", CredentialsSchema);
