@@ -1,5 +1,6 @@
 const { request, response } = require("express");
 const bcrypt = require("bcrypt");
+const { Types } = require("mongoose");
 
 const CredentialsModel = require("../models/Credentials");
 const { generateToken } = require("../helpers/jwt");
@@ -23,7 +24,7 @@ const login = async (req = request, resp = response) => {
       return resp.status(400).json({ msg: "Wrong email or password " });
     }
     // Access token
-    const payload = { uid: cred._id.toString(),email,role: cred.role };
+    const payload = { uid: cred._id.toString(),role: cred.role };
     const access_token = await generateToken(payload);
     // Refresh token
     if (!cred.refreshToken) {
@@ -44,12 +45,11 @@ const login = async (req = request, resp = response) => {
 
 const register = async (req = request, resp = response) => {
   try {
-    const { email, password,role } = req.body;
-    console.log({email,password,role});
-    
+    const { email, password, role } = req.body;
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    const cred = new CredentialsModel({ email, password: hashedPassword,role });
-    const payload = { uid: cred._id.toString(),role,email };
+    const cred = new CredentialsModel({ email, password: hashedPassword, role });
+    const payload = { uid: cred._id.toString(), role };
 
     const [access_token, refresh_token] = await Promise.all([
       await generateToken(payload),
@@ -109,9 +109,43 @@ const logout = async (req = request, resp = response) => {
     });
   }
 };
+
+const access = (req, resp) => {
+  const { access_token, role } = req.query;
+  try {
+    jwt.verify(access_token, process.env.ACCESS_TOKEN_SECRET, async (error, payload) => {
+       
+      // Check for an  jwt error
+      if (error) {
+        return resp.status(401).json({
+          error: "Unauthorized , invalid token"
+        });
+      }
+
+      // Check the sended role with the real user role  
+      const { uid } = payload;
+      const userRole = await CredentialsModel.findById(new Types.ObjectId(uid));
+      if (userRole !== role) {
+        return resp.status(401).json({
+          error: "Unauthorized , lack of privileges"
+        })
+      }
+
+
+      // Everything went okf
+      return resp.json({ scucces: true });
+    });
+  } catch (error) {
+    return resp.status(500).json({
+      error: error.message
+    })
+  }
+
+}
 module.exports = {
   login,
   register,
   refresh,
   logout,
+  access
 };
