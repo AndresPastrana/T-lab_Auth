@@ -1,7 +1,7 @@
 const { request, response } = require("express");
 const bcrypt = require("bcrypt");
 const { Types } = require("mongoose");
-
+const jwt = require("jsonwebtoken")
 const CredentialsModel = require("../models/Credentials");
 const { generateToken } = require("../helpers/jwt");
 
@@ -123,9 +123,7 @@ const access = (req, resp) => {
       }
 
       // Check the sended role with the real user role  
-      const { uid } = payload;
-      const userRole = await CredentialsModel.findById(new Types.ObjectId(uid));
-      if (userRole !== role) {
+      if (payload.role !== role) {
         return resp.status(401).json({
           error: "Unauthorized , lack of privileges"
         })
